@@ -45,24 +45,24 @@ void MThreadPool::run()
 {
     while (1)
     {
-        std::unique_lock<std::mutex> lck(mtx);
-        while (isRunning && taskQueue.empty())
+        std::shared_ptr<MTask> t;
         {
-            std::cout << "Empty waiting..." << std::endl;
-            cv.wait(lck);
-        }
+            std::unique_lock<std::mutex> lck(mtx);
+            while (isRunning && taskQueue.empty())
+            {
+                std::cout << "Empty waiting..." << std::endl;
+                cv.wait(lck);
+            }
 
-        if (!isRunning)
-        {
-            return;
-        }
+            if (!isRunning)
+            {
+                return;
+            }
 
-        if (!taskQueue.empty())
-        {
-            std::shared_ptr<MTask> t = taskQueue.top();
+            t = taskQueue.top();
             taskQueue.pop();
-            t->execute();
         }
+        t->execute();
     }
 }
 
